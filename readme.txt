@@ -1,7 +1,9 @@
+PROJECT NAME : Feature Selection by Genetic algorithm based on interaction score
 
- Yuval Zehavi - 204251102
- Yuval Elbaz - 204386858
- Adam Cohen - 301914388
+PARTICIPANTS :
+     Yuval Zehavi - 204251102
+     Yuval Elbaz - 204386858
+     Adam Cohen - 301914388
 
 this is a prototype for a genetic algorithm .
 
