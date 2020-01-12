@@ -105,18 +105,21 @@ class Browse(tk.Frame):
         num_rand_chromosomes = self.num_rand_chromosomes.get()
         num_crossover_children = self.num_crossover_children.get()
         operator_probability = self.operator_probability.get()
+        try:
+
         # model = prepare_network_from_file(self.modelPath.get())
         # predictions = predict_from_folder(model,self.filepath.get())
         #     data_vector, target_vector = dataset.data, dataset.target
         #     features = dataset.feature_names
         #     for i in range(20):
-        data_proccessing = dl.data_processing(dataset_path=entry_dataset_path, sep=",", number_of_bins=int(num_of_discritization_bins))
-        features_values, class_values = data_proccessing.prepare_data()
-        feature_names = features_values.columns.values
+            data_proccessing = dl.data_processing(dataset_path=entry_dataset_path, sep=",", number_of_bins=int(num_of_discritization_bins))
+            features_values, class_values = data_proccessing.prepare_data()
+            feature_names = features_values.columns.values
         # feature_names.append(class_values.name)
         # feature_names = pd.DataFrame(feature_names)
-        mi_estimator = genetic_selector.Mutual_Information_Estimator(features_values, class_values, feature_names)
-        selector = genetic_selector.GeneticSelector(estimator =mi_estimator,
+
+            mi_estimator = genetic_selector.Mutual_Information_Estimator(features_values, class_values, feature_names)
+            selector = genetic_selector.GeneticSelector(estimator =mi_estimator,
                                            num_of_generations = int(num_of_generations),
                                            num_of_chromosomes = int(num_of_chromosomes),
                                            num_best_chromosomes = int(num_best_chromosomes),
@@ -124,15 +127,17 @@ class Browse(tk.Frame):
                                            num_crossover_children = int(num_crossover_children),
                                            features_names = feature_names,
                                            operator_probability = float(operator_probability))
-        selector.evolve(features_values, class_values)
-        best_features = selector.best_features
+            selector.evolve(features_values, class_values)
+            best_features = selector.best_features
         #         print(i,best_features)
         #
 
-        T = tk.Text(newwin, height=25, width=60)
-        for list in best_features:
-            T.insert('end',str(list)+"\n")
-            T.pack()
+            T = tk.Text(newwin, height=25, width=60)
+            for list in best_features:
+                T.insert('end',str(list)+"\n")
+                T.pack()
+        except :
+            raise ValueError('please insert valid parameters')
 
         #then show it on screen
         newwin.mainloop()
