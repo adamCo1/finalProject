@@ -1,3 +1,8 @@
+
+ Yuval Zehavi - 204251102
+ Yuval Elbaz - 204386858
+ Adam Cohen - 301914388
+
 this is a prototype for a genetic algorithm .
 
 as we were directed to do, we implemented an algorithm that uses Mutual Information as fitness function.
