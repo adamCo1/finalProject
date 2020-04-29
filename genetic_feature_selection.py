@@ -2,7 +2,12 @@ import random
 import numpy as np
 import pandas as pd
 import sklearn.metrics
+import pyitlib as metrics
+import algorithms as algs
 from operator import itemgetter
+
+import data_loader as loader
+
 SEED = 2020
 random.seed(SEED)
 np.random.seed(SEED)
@@ -52,7 +57,7 @@ next generation and applies operators such as crossover, duplication and mutatio
 '''
 class GeneticSelector():
     def __init__(self, estimator, num_of_generations, num_of_chromosomes,  num_best_chromosomes, num_rand_chromosomes,
-                 num_crossover_children, features_names, operator_probability):
+                 num_crossover_children, features_names, operator_probability, class_vector):
         self.estimator = estimator
         self.features_names = features_names
         self.num_of_generations = num_of_generations
@@ -63,12 +68,35 @@ class GeneticSelector():
         self.operator_probability = operator_probability
         self.best_features = []
         self.__check_parameters__()
-        #self.__checkPopulationSize__();
+        self.class_vector = class_vector
 
     def __check_parameters__(self):
         if(self.num_best_chromosomes > self.num_of_chromosomes or self.num_rand_chromosomes > self.num_of_chromosomes or
         self.num_crossover_children > self.num_of_chromosomes):
             raise ValueError('total number of chromosomes must be the highest value')
+
+    '''
+    @:param data_vector matrix of the data 
+    @:param target_vector vector of the classification information
+
+    handle the lifecycle of the algorithm
+
+    @:returns self
+    @:type class type
+    '''
+
+    def evolve(self, data_vector, target_vector):
+        self.chromosomes_best = []
+        self.scores_best, self.scores_avg = [], []
+        self.dataset = data_vector, target_vector  # set the complete dataset
+        self.n_features = data_vector.shape[1]  # number of the given dataset's features
+        self.best_features = []
+        population = self.__initialize_population__()
+        for i in range(self.num_of_generations):
+            population = self.__generation_life_cycle__(population)
+
+        self.__get_best_names__(population);
+        return self
 
     '''
     a check to ensure the population will get to its original size after each generation
@@ -105,11 +133,13 @@ class GeneticSelector():
         
     '''
     def __fitness__(self, population):
-         sorted_scores = None
          X, y = self.dataset
          scores = []
          for chromosome_index, chromosome in enumerate(population):
             columns_mask = []
+
+            chromosome_names = self.__get_names__(chromosome)
+
             for index, value in enumerate(chromosome): # get the names for the chromose mask
                 if value == True:
                     columns_mask.append(self.features_names[index])
@@ -153,7 +183,7 @@ class GeneticSelector():
         while(len(next_population) < self.num_of_chromosomes):
             first_parent_random_index = random.randint(self.num_best_chromosomes, len(population)-1)
             second_parent_random_index = random.randint(self.num_best_chromosomes, len(population)-1)
-            #choose 2 parents at random
+            # choose 2 parents at random
             chromosome1, chromosome2 = population[first_parent_random_index], population[second_parent_random_index]
             child = chromosome1
             mask = np.random.rand(len(child)) > 0.5
@@ -189,7 +219,7 @@ class GeneticSelector():
         population = self.__crossover__(population)
         population = self.__mutate__(population)
         self.scores_best.append(sorted_scores[0])
-        print('best scores of current generation : ' )
+        print('best scores of current generation : ')
         print(sorted_scores[0][1])
         return population
 
@@ -207,27 +237,12 @@ class GeneticSelector():
             if names not in self.best_features: # no duplicates
                 self.best_features.append(names)
 
-    '''
-    @:param data_vector matrix of the data 
-    @:param target_vector vector of the classification information
-    
-    handle the lifecycle of the algorithm
-    
-    @:returns self
-    @:type class type
-    '''
-    def evolve(self, data_vector, target_vector):
-        self.chromosomes_best = []
-        self.scores_best, self.scores_avg = [], []
-        self.dataset = data_vector, target_vector # set the complete dataset
-        self.n_features = data_vector.shape[1] # number of the given dataset's features
-        self.best_features = []
-        population = self.__initialize_population__()
-        for i in range(self.num_of_generations):
-            population = self.__generation_life_cycle__(population)
-
-        self.__get_best_names__(population);
-        return self
+    def __get_names__(self, chromosome):
+        names = []
+        for feature_index, feature in enumerate(chromosome):  # get the names from each chromosome
+            if feature == True:
+                names.append(self.features_names[feature_index])
+        return names
 
     '''
     @:returns apply the operator or not
@@ -237,21 +252,28 @@ class GeneticSelector():
         return random.random() < self.operator_probability
 
 def main():
-    data_df = pd.read_csv('wdbc.csv', sep=',')
-    data_vector, target_vector, features_names = data_df[data_df.columns[1:-1]], data_df[data_df.columns[-1]], list(data_df.columns.values)
+    process = loader.data_processing('wdbc.csv', sep=',', number_of_bins=10)
+
+    features_vectors, class_vector, features_names, class_name = process.prepare_data()
+
+    # target_vector = features_vectors[features_vectors.columns[-1]]
+
+    features_vectors = algs.fcbf(features_vectors, class_vector, 0.1)
+    features_names = features_vectors.columns.values
+
     for i in range(20):
-        mu = Mutual_Information_Estimator(data_vector, target_vector, features_names)
+        mu = Mutual_Information_Estimator(features_vectors, class_vector, features_names)
         selector = GeneticSelector(estimator = mu,
                                    num_of_generations = 5,
                                    num_of_chromosomes = 30,
                                    num_best_chromosomes = 10,
                                    num_rand_chromosomes = 5,
                                    num_crossover_children = 5,
-                                   features_names = features_names[1:-1],
-                                   operator_probability = 0.3)
-        selector.evolve(data_vector, target_vector)
+                                   features_names = features_names,
+                                   operator_probability = 0.3,
+                                   class_vector = class_vector)
+        selector.evolve(features_vectors, class_vector)
         print(i, selector.best_features)
 
-
-#main()
-
+if __name__ == '__main__':
+    main()

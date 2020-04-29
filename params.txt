@@ -1,0 +1,31 @@
+{
+    "path": "wdbc.csv",
+    "returnNumberOfFeatures": 10,
+    "numberOfBins": 10,
+
+    "relief": {
+        "numberOfNeighbors": 200
+
+    },
+
+    "fcbf": {
+        "threshhold": 0.2
+    },
+
+    "mrmr": {
+        "type": "MID"
+    },
+
+    "genetic": {
+        "numberOfGenerations": 100,
+        "bestChromosomes": 50,
+        "chromosomesNum": 100,
+        "randChromosomesNum": 10,
+        "crossoverNum": 10,
+        "operatorsProbability": 0.3
+    },
+
+    "iwfs": {
+
+    }
+}
